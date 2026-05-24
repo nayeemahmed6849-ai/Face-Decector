@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stunning real-time cyberpunk face detector and mesh landmarker powered by Google MediaPipe.">
+    <title>CYBER-MESH // Neural Face Detector</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="cyber-container">
+        
+        <!-- HEADER -->
+        <header class="cyber-header">
+            <div class="header-logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">
+                    <h1>CYBER-MESH</h1>
+                    <span class="sub-logo">FACIAL TELEMETRY v1.0.4</span>
+                </div>
+            </div>
+            <div class="system-status-pill">
+                <span class="status-dot pulsing" id="status-dot"></span>
+                <span class="status-label" id="status-label">SYS_INIT_AWAIT</span>
+            </div>
+        </header>
+
+        <!-- MAIN GRID LAYOUT -->
+        <main class="cyber-grid">
+            
+            <!-- LEFT SCREEN: SCANNER CONTAINER -->
+            <section class="scanner-panel panel">
+                <!-- Retro-Futuristic HUD Corners -->
+                <div class="hud-corner top-left"></div>
+                <div class="hud-corner top-right"></div>
+                <div class="hud-corner bottom-left"></div>
+                <div class="hud-corner bottom-right"></div>
+                
+                <!-- Viewport Panel Header -->
+                <div class="panel-header">
+                    <span class="panel-tag">// WEBCAM.FEED_01</span>
+                    <span class="panel-time" id="hud-clock">00:00:00:00</span>
+                </div>
+
+                <!-- Scanner Viewport Frame -->
+                <div class="scanner-viewport" id="drop-zone">
+                    <!-- Laser Scan Line -->
+                    <div class="scanner-laser" id="laser-line"></div>
+                    
+                    <!-- Drag & Drop Indicator -->
+                    <div class="drop-overlay" id="drop-overlay">
+                        <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 4H8C5.23858 4 3 6.23858 3 9V12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/>
+                            <path d="M21 9V12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/>
+                        </svg>
+                        <p class="drop-text">DRAG & DROP IMAGE HERE OR CLICK TO UPLOAD</p>
+                        <span class="drop-subtext">Supports PNG, JPG, JPEG</span>
+                    </div>
+
+                    <!-- Main Video and Canvas Overlay -->
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <canvas id="canvas-overlay"></canvas>
+
+                    <!-- Scan Mode Indicator -->
+                    <div class="scan-mode-indicator" id="scan-mode-indicator">
+                        <div class="mode-pulse"></div>
+                        <span id="mode-text">STANDBY</span>
+                    </div>
+                </div>
+
+                <!-- Control Console -->
+                <div class="console-controls">
+                    <button class="ctrl-btn btn-primary" id="btn-camera" title="Activate Webcam">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span>START SCAN</span>
+                    </button>
+                    
+                    <button class="ctrl-btn btn-secondary disabled" id="btn-stop" disabled title="Deactivate Webcam">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                        </svg>
+                        <span>PAUSE</span>
+                    </button>
+
+                    <button class="ctrl-btn btn-secondary" id="btn-upload-trigger" title="Upload Static Image">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>UPLOAD IMAGE</span>
+                    </button>
+                    <input type="file" id="file-upload" accept="image/*" style="display: none;">
+
+                    <div class="btn-divider"></div>
+
+                    <button class="ctrl-btn btn-toggle active" id="btn-toggle-mesh" title="Toggle 3D Wireframe Mesh">
+                        <span class="indicator-led"></span>
+                        <span>MESH</span>
+                    </button>
+
+                    <button class="ctrl-btn btn-toggle active" id="btn-toggle-dots" title="Toggle Feature Points">
+                        <span class="indicator-led"></span>
+                        <span>DOTS</span>
+                    </button>
+
+                    <button class="ctrl-btn btn-action" id="btn-snapshot" title="Capture Snapshot">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                            <path d="M12 2v4M12 14v4M4 10H8M16 10h4"></path>
+                        </svg>
+                        <span>SNAPSHOT</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- RIGHT SCREEN: HUD METRICS & LOGS -->
+            <section class="hud-panel panel">
+                <div class="hud-corner top-left"></div>
+                <div class="hud-corner top-right"></div>
+                <div class="hud-corner bottom-left"></div>
+                <div class="hud-corner bottom-right"></div>
+
+                <div class="panel-header">
+                    <span class="panel-tag">// TELEMETRY.ANALYTICS</span>
+                    <span class="pulse-indicator">SYSTEM STATUS NORMAL</span>
+                </div>
+
+                <!-- Real-time Diagnostics Grid -->
+                <div class="diagnostics-grid">
+                    <div class="diag-card">
+                        <div class="diag-title">FPS</div>
+                        <div class="diag-value" id="stat-fps">--</div>
+                    </div>
+                    <div class="diag-card">
+                        <div class="diag-title">LATENCY</div>
+                        <div class="diag-value" id="stat-latency">-- <span class="unit">ms</span></div>
+                    </div>
+                    <div class="diag-card">
+                        <div class="diag-title">FACES LOCKED</div>
+                        <div class="diag-value" id="stat-faces">0</div>
+                    </div>
+                </div>
+
+                <!-- Mood & State Classification Card -->
+                <div class="mood-box">
+                    <div class="mood-box-glow"></div>
+                    <div class="mood-header">
+                        <span class="mood-tag">AI COGNITIVE CLASSIFIER</span>
+                        <span class="mood-percent" id="mood-confidence">0% CONFIDENCE</span>
+                    </div>
+                    <div class="mood-title">ESTIMATED MOOD:</div>
+                    <div class="mood-value" id="mood-display">AWAITING INPUT</div>
+                </div>
+
+                <!-- Expression Analytics Gauges -->
+                <div class="analytics-section">
+                    <h3 class="section-title">// FACIAL_BLENDSHAPE_COEFFICIENTS</h3>
+                    
+                    <!-- Smile Bar -->
+                    <div class="gauge-container">
+                        <div class="gauge-info">
+                            <span class="gauge-name">SMILE INTENSITY</span>
+                            <span class="gauge-percent" id="gauge-val-smile">0%</span>
+                        </div>
+                        <div class="gauge-bar-outer">
+                            <div class="gauge-bar-inner glow-cyan" id="gauge-fill-smile" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Blink / Sleepiness Bar -->
+                    <div class="gauge-container">
+                        <div class="gauge-info">
+                            <span class="gauge-name">EYE CLOSURE (LEFT/RIGHT)</span>
+                            <span class="gauge-percent" id="gauge-val-blink">0%</span>
+                        </div>
+                        <div class="gauge-bar-outer">
+                            <div class="gauge-bar-inner glow-purple" id="gauge-fill-blink" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Surprise Bar -->
+                    <div class="gauge-container">
+                        <div class="gauge-info">
+                            <span class="gauge-name">SURPRISE COEFFICIENT (JAW OPEN)</span>
+                            <span class="gauge-percent" id="gauge-val-surprise">0%</span>
+                        </div>
+                        <div class="gauge-bar-outer">
+                            <div class="gauge-bar-inner glow-pink" id="gauge-fill-surprise" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Eyebrow tension -->
+                    <div class="gauge-container">
+                        <div class="gauge-info">
+                            <span class="gauge-name">FROWNING / CONCENTRATION</span>
+                            <span class="gauge-percent" id="gauge-val-concentration">0%</span>
+                        </div>
+                        <div class="gauge-bar-outer">
+                            <div class="gauge-bar-inner glow-emerald" id="gauge-fill-concentration" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tech Console Output Log -->
+                <div class="console-logs-container">
+                    <div class="console-logs-header">
+                        <span>// SYS_CONSOLE.LOG</span>
+                        <button class="clear-logs-btn" id="btn-clear-logs">CLEAR</button>
+                    </div>
+                    <div class="console-logs" id="console-logs">
+                        <div class="log-line system-line">[SYS] Initializing Cyber-Mesh terminal...</div>
+                        <div class="log-line info-line">[INFO] System loaded. Awaiting engine boot.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="cyber-footer">
+            <p>DESIGNED & BUILT FOR HIGH-PRECISION WEB NEURAL SCANNING // 2026 DEEPMIND ANTIGRAVITY</p>
+        </footer>
+    </div>
+    
+    <!-- Core Application Logic -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
